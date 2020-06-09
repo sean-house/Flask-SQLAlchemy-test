@@ -2,7 +2,7 @@ from db import db
 
 
 class UserModel(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80))
@@ -24,7 +24,6 @@ class UserModel(db.Model):
         """
         db.session.add(self)
         db.session.commit()
-
 
     def delete_from_db(self):
         """
