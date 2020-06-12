@@ -1,6 +1,9 @@
 from db import db
 from datetime import datetime
 from models.user import UserModel
+from typing import Dict, List, Union
+
+MeasurementJSON = Dict[ str, Union[ str, float ] ]
 
 
 class MeasurementModel(db.Model):
@@ -31,7 +34,7 @@ class MeasurementModel(db.Model):
         self.unit = unit
         self.user_id = user_id
 
-    def json(self):
+    def json(self) -> MeasurementJSON:
         if self.user_id:
             username = UserModel.find_by_id(self.user_id).username
         else:
@@ -45,14 +48,14 @@ class MeasurementModel(db.Model):
             "created by": username,
         }
 
-    def save_to_db(self):
+    def save_to_db(self) -> None:
         """
         :cvar
         """
         db.session.add(self)
         db.session.commit()
 
-    def delete_from_db(self):
+    def delete_from_db(self) -> None:
         """
         :param
         """
@@ -60,10 +63,10 @@ class MeasurementModel(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_by_location(cls, location):
+    def find_by_location(cls, location) -> List['MeasurementModel']:
         print(f"Find by location called for: {location}")
         return cls.query.filter_by(location=location).all()
 
     @classmethod
-    def find_by_id(cls, _id):
+    def find_by_id(cls, _id) -> 'MeasurementModel':
         return cls.query.filter_by(id=_id).first()

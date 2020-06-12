@@ -1,4 +1,7 @@
 from db import db
+from typing import Dict, List, Union
+
+UserJSON = Dict[str, Union[str, int]]
 
 
 class UserModel(db.Model):
@@ -15,17 +18,17 @@ class UserModel(db.Model):
         self.pw_salt = salt
         self.pw_hash = hash
 
-    def json(self):
+    def json(self) -> UserJSON:
         return {"id": self.id, "username": self.username}
 
-    def save_to_db(self):
+    def save_to_db(self) -> None:
         """
         :cvar
         """
         db.session.add(self)
         db.session.commit()
 
-    def delete_from_db(self):
+    def delete_from_db(self) -> None:
         """
         :param
         """
@@ -33,16 +36,16 @@ class UserModel(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_all(cls):
+    def find_all(cls) -> List['UserModel']:
         """
         :param
         """
         return cls.query.all()
 
     @classmethod
-    def find_by_username(cls, username):
+    def find_by_username(cls, username) -> 'UserModel':
         return cls.query.filter_by(username=username).first()
 
     @classmethod
-    def find_by_id(cls, _id):
+    def find_by_id(cls, _id) -> 'UserModel':
         return cls.query.filter_by(id=_id).first()

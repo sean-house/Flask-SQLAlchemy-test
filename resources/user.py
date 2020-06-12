@@ -10,13 +10,14 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from models.user import UserModel
+import messages.en as msgs
 
 _user_parser = reqparse.RequestParser()
 _user_parser.add_argument(
-    "username", type=str, required=True, help="'username' field cannot be left blank!"
+    "username", type=str, required=True, help=msgs.BLANK_FIELD.format('username')
 )
 _user_parser.add_argument(
-    "password", type=str, required=True, help="'password' field cannot be left blank!"
+    "password", type=str, required=True, help=msgs.BLANK_FIELD.format('password')
 )
 
 
@@ -40,7 +41,7 @@ def is_correct_password(salt: bytes, pw_hash: bytes, password: str) -> bool:
     )
 
 
-def authenticate(username, password):
+def authenticate(username, password) -> 'UserModel':
     this_user = UserModel.find_by_username(username)
     print(f"Calling Authenticate: User found = {username}")
     if this_user and is_correct_password(
@@ -55,14 +56,14 @@ class UserRegister(Resource):
         data = _user_parser.parse_args()
 
         if UserModel.find_by_username(data["username"]):
-            return {"message": "User with that username already exists."}, 400
+            return {"message": msgs.USER_EXISTS}, 400
         pw_salt, pw_hash = hash_new_password(password=data["password"])
         this_user = UserModel(
             _id=None, username=data["username"], salt=pw_salt, hash=pw_hash
         )
         this_user.save_to_db()
 
-        return {"message": "User created successfully."}, 201
+        return {"message": msgs.CREATED.format('User')}, 201
 
     @jwt_required
     def delete(self):
@@ -81,10 +82,10 @@ class UserRegister(Resource):
                 current_user.pw_salt, current_user.pw_hash, data["password"]
             ):
                 current_user.delete_from_db()
-                return {"message": f"User {current_user.username} deleted."}, 200
+                return {"message": msgs.DELETED.format(current_user.username)}, 200
             else:
-                return {"error": f"Invalid password"}, 401
-        return {"error": f"You are only permitted to delete your own record"}, 401
+                return {"error": msgs.INVALID_PASSWORD}, 401
+        return {"error": msgs.OWN_RECORD_ONLY}, 401
 
 
 class UserLogin(Resource):
@@ -102,7 +103,7 @@ class UserLogin(Resource):
             refresh_token = create_refresh_token(this_user.id)
             return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
-        return {"message": "Invalid Credentials!"}, 401
+        return {"message": msgs.INVALID_PASSWORD}, 401
 
 
 class UserList(Resource):

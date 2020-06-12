@@ -2,6 +2,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.measurement import MeasurementModel
 from datetime import datetime
+import messages.en as msgs
 
 
 class Measurement(Resource):
@@ -11,25 +12,25 @@ class Measurement(Resource):
         "timestamp",
         type=lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S"),
         required=True,
-        help="'timestamp' field cannot be left blank!",
+        help=msgs.BLANK_FIELD.format('timestamp'),
     )
     parser.add_argument(
         "location",
         type=str,
         required=True,
-        help="'location' field cannot be left blank!",
+        help=msgs.BLANK_FIELD.format('location'),
     )
     parser.add_argument(
         "measurement",
         type=str,
         required=True,
-        help="'measurement' field cannot be left blank!",
+        help=msgs.BLANK_FIELD.format('measurement'),
     )
     parser.add_argument(
-        "value", type=float, required=True, help="'value' field cannot be left blank!"
+        "value", type=float, required=True, help=msgs.BLANK_FIELD.format('value'),
     )
     parser.add_argument(
-        "unit", type=str, required=True, help="'unit' field cannot be left blank!"
+        "unit", type=str, required=True, help=msgs.BLANK_FIELD.format('unit')
     )
 
     @jwt_required
@@ -47,22 +48,13 @@ class Measurement(Resource):
         )
         this_measurement.save_to_db()
 
-        return {"message": "Measurement stored", "data": this_measurement.json()}, 201
+        return {"message": msgs.MEASUREMENT_STORED, "data": this_measurement.json()}, 201
 
 
 class MeasurementList(Resource):
 
-    parser = reqparse.RequestParser()
-    parser.add_argument(
-        "location",
-        type=str,
-        required=True,
-        help="'location' field must be specified to retrieve measurements!",
-    )
-
     @jwt_required
     def get(self, location):
-        data = MeasurementList.parser.parse_args()
-        measurement_list = MeasurementModel.find_by_location(data["location"])
+        measurement_list = MeasurementModel.find_by_location(location)
 
         return {"data": [msmt.json() for msmt in measurement_list]}
