@@ -5,6 +5,7 @@ import hmac
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import (
     jwt_required,
+    jwt_refresh_token_required,
     create_access_token,
     create_refresh_token,
     get_jwt_identity,
@@ -111,3 +112,12 @@ class UserList(Resource):
     def get(self):
         # return {'Users': list(map(lambda x: x.json(), UserModel.query.all()))}
         return {"users": [user.json() for user in UserModel.find_all()]}
+
+
+class TokenRefresh(Resource):
+    @jwt_refresh_token_required
+    def post(self):
+        current_identity = get_jwt_identity()
+        access_token = create_access_token(identity=current_identity, fresh=False)
+        refresh_token = create_refresh_token(current_identity)
+        return {"access_token": access_token, "refresh_token": refresh_token}, 200

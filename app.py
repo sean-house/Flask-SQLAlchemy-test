@@ -1,15 +1,16 @@
 from flask import Flask
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
+import os
 
-from resources.user import UserRegister, UserList, UserLogin
+from resources.user import UserRegister, UserList, UserLogin, TokenRefresh
 from resources.measurement import Measurement, MeasurementList
 from db import db
 
 
 app = Flask(__name__)
 app.config["PROPAGATE_EXCEPTIONS"] = True
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///dbase.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('FLASK_DB_URL', "sqlite:///dbase.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "qwertyuiop"
 app.secret_key = "qwertyuiop"
@@ -28,6 +29,7 @@ api.add_resource(UserList, "/users")
 api.add_resource(Measurement, "/measurement")
 api.add_resource(MeasurementList, "/measurements/<string:location>")
 api.add_resource(UserLogin, "/login")
+api.add_resource(TokenRefresh, '/refresh')
 
 
 if __name__ == "__main__":

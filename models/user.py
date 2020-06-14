@@ -9,8 +9,8 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80))
-    pw_salt = db.Column(db.String(80))
-    pw_hash = db.Column(db.String(100))
+    pw_salt = db.Column(db.LargeBinary(80))
+    pw_hash = db.Column(db.LargeBinary(100))
 
     def __init__(self, _id, username, salt, hash):
         self.id = _id
