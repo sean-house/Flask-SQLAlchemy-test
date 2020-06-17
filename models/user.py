@@ -1,25 +1,15 @@
 from db import db
 from typing import Dict, List, Union
 
-UserJSON = Dict[str, Union[str, int]]
-
 
 class UserModel(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80))
+    username = db.Column(db.String(80), nullable=False)
     pw_salt = db.Column(db.LargeBinary(80))
     pw_hash = db.Column(db.LargeBinary(100))
 
-    def __init__(self, _id, username, salt, hash):
-        self.id = _id
-        self.username = username
-        self.pw_salt = salt
-        self.pw_hash = hash
-
-    def json(self) -> UserJSON:
-        return {"id": self.id, "username": self.username}
 
     def save_to_db(self) -> None:
         """

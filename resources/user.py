@@ -2,7 +2,8 @@ from typing import Tuple
 import os
 import hashlib
 import hmac
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
+from flask import request
 from flask_jwt_extended import (
     jwt_required,
     jwt_refresh_token_required,
@@ -11,15 +12,10 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from models.user import UserModel
+from schemas.user import UserSchema
 import messages.en as msgs
 
-_user_parser = reqparse.RequestParser()
-_user_parser.add_argument(
-    "username", type=str, required=True, help=msgs.BLANK_FIELD.format('username')
-)
-_user_parser.add_argument(
-    "password", type=str, required=True, help=msgs.BLANK_FIELD.format('password')
-)
+user_schema = UserSchema()
 
 
 def hash_new_password(password: str) -> Tuple[bytes, bytes]:
@@ -42,7 +38,7 @@ def is_correct_password(salt: bytes, pw_hash: bytes, password: str) -> bool:
     )
 
 
-def authenticate(username, password) -> 'UserModel':
+def authenticate(username, password) -> "UserModel":
     this_user = UserModel.find_by_username(username)
     print(f"Calling Authenticate: User found = {username}")
     if this_user and is_correct_password(
@@ -54,17 +50,18 @@ def authenticate(username, password) -> 'UserModel':
 
 class UserRegister(Resource):
     def post(self):
-        data = _user_parser.parse_args()
+        user = user_schema.load(request.get_json())
+        print(f"Passed user: {user}")
 
-        if UserModel.find_by_username(data["username"]):
+        if UserModel.find_by_username(user["username"]):
             return {"message": msgs.USER_EXISTS}, 400
-        pw_salt, pw_hash = hash_new_password(password=data["password"])
+        pw_salt, pw_hash = hash_new_password(password=user["password"])
         this_user = UserModel(
-            _id=None, username=data["username"], salt=pw_salt, hash=pw_hash
+            id=None, username=user["username"], pw_salt=pw_salt, pw_hash=pw_hash
         )
         this_user.save_to_db()
 
-        return {"message": msgs.CREATED.format('User')}, 201
+        return {"message": msgs.CREATED.format("User")}, 201
 
     @jwt_required
     def delete(self):
@@ -72,18 +69,17 @@ class UserRegister(Resource):
         Remove user from database - but only for the same user as owns the token
         :param
         """
-        data = _user_parser.parse_args()
+        user = user_schema.load(request.get_json())
+
         current_identity = get_jwt_identity()
-        current_user = UserModel.find_by_id(current_identity)
+        db_user = UserModel.find_by_id(current_identity)
         print(
-            f"Delete called by {current_user.id}: {current_user.username} with data: {data}"
+            f"Delete called by {db_user.id}: {db_user.username} with data: {user.username}"
         )
-        if current_user.username == data["username"]:
-            if is_correct_password(
-                current_user.pw_salt, current_user.pw_hash, data["password"]
-            ):
-                current_user.delete_from_db()
-                return {"message": msgs.DELETED.format(current_user.username)}, 200
+        if db_user.username == user.username:
+            if is_correct_password(db_user.pw_salt, db_user.pw_hash, user.password):
+                db_user.delete_from_db()
+                return {"message": msgs.DELETED.format(db_user.username)}, 200
             else:
                 return {"error": msgs.INVALID_PASSWORD}, 401
         return {"error": msgs.OWN_RECORD_ONLY}, 401
@@ -91,13 +87,13 @@ class UserRegister(Resource):
 
 class UserLogin(Resource):
     def post(self):
-        data = _user_parser.parse_args()
-
-        this_user = UserModel.find_by_username(data["username"])
+        login_user = user_schema.load(request.get_json())  # Login user is a dict
+        this_user = UserModel.find_by_username(login_user["username"])
 
         # this is what the `authenticate()` function did in security.py
+        # now check the user model returned from the login has the same password as the database user
         if this_user and is_correct_password(
-            this_user.pw_salt, this_user.pw_hash, data["password"]
+            this_user.pw_salt, this_user.pw_hash, login_user["password"]
         ):
             # identity= is what the identity() function did in security.py—now stored in the JWT
             access_token = create_access_token(identity=this_user.id, fresh=True)
@@ -110,8 +106,7 @@ class UserLogin(Resource):
 class UserList(Resource):
     @jwt_required
     def get(self):
-        # return {'Users': list(map(lambda x: x.json(), UserModel.query.all()))}
-        return {"users": [user.json() for user in UserModel.find_all()]}
+        return {"users": [user_schema.dump(user) for user in UserModel.find_all()]}
 
 
 class TokenRefresh(Resource):
