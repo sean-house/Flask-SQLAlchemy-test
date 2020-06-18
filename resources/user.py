@@ -2,8 +2,9 @@ from typing import Tuple
 import os
 import hashlib
 import hmac
+import json
 from flask_restful import Resource
-from flask import request
+from flask import request, make_response, render_template
 from flask_jwt_extended import (
     jwt_required,
     jwt_refresh_token_required,
@@ -14,6 +15,7 @@ from flask_jwt_extended import (
 from models.user import UserModel
 from schemas.user import UserSchema
 import messages.en as msgs
+
 
 user_schema = UserSchema()
 
@@ -57,11 +59,14 @@ class UserRegister(Resource):
             return {"message": msgs.USER_EXISTS}, 400
         pw_salt, pw_hash = hash_new_password(password=user["password"])
         this_user = UserModel(
-            id=None, username=user["username"], pw_salt=pw_salt, pw_hash=pw_hash
+            id=None, username=user["username"], email=user['email'], pw_salt=pw_salt, pw_hash=pw_hash
         )
         this_user.save_to_db()
+        resp = this_user.send_confirmation_email()
+        if resp:
+            print(f"Confirmation email sent: {json.loads(resp.text)['id']}")
 
-        return {"message": msgs.CREATED.format("User")}, 201
+        return {"message": msgs.CREATED.format(this_user.username)}, 201
 
     @jwt_required
     def delete(self):
@@ -95,10 +100,12 @@ class UserLogin(Resource):
         if this_user and is_correct_password(
             this_user.pw_salt, this_user.pw_hash, login_user["password"]
         ):
-            # identity= is what the identity() function did in security.py—now stored in the JWT
-            access_token = create_access_token(identity=this_user.id, fresh=True)
-            refresh_token = create_refresh_token(this_user.id)
-            return {"access_token": access_token, "refresh_token": refresh_token}, 200
+            if this_user.activated:
+                access_token = create_access_token(identity=this_user.id, fresh=True)
+                refresh_token = create_refresh_token(this_user.id)
+                return {"access_token": access_token, "refresh_token": refresh_token}, 200
+            else:
+                return {"message": msgs.NOT_CONFIRMED.format(this_user.username)}, 400
 
         return {"message": msgs.INVALID_PASSWORD}, 401
 
@@ -116,3 +123,18 @@ class TokenRefresh(Resource):
         access_token = create_access_token(identity=current_identity, fresh=False)
         refresh_token = create_refresh_token(current_identity)
         return {"access_token": access_token, "refresh_token": refresh_token}, 200
+
+class UserConfirm(Resource):
+    @classmethod
+    def get(cls, user_id: int):
+        """
+        :var
+        """
+        user = UserModel.find_by_id(user_id)
+        if user:
+            user.activated = True
+            user.save_to_db()
+            headers = {"Content-Type": "text/html"}
+            return make_response(render_template("confirmation_page.html", email=user.email), 202, headers)
+        else:
+            return {"messages": msgs.USER_NONEXISTANT.format(user_id)}, 404

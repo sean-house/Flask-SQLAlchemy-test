@@ -14,6 +14,7 @@ class Measurement(Resource):
     @jwt_required
     def post(self):
         measurement_json = request.get_json()
+        print(measurement_json)
         measurement_json["user_id"] = get_jwt_identity()
         this_measurement = measurement_schema.load(measurement_json)
 

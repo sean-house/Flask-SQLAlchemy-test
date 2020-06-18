@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager
 from marshmallow import ValidationError
 import os
 
-from resources.user import UserRegister, UserList, UserLogin, TokenRefresh
+from resources.user import UserRegister, UserList, UserLogin, TokenRefresh, UserConfirm
 from resources.measurement import Measurement, MeasurementList
 from db import db
 from ma import ma
@@ -39,6 +39,7 @@ api.add_resource(Measurement, "/measurement")
 api.add_resource(MeasurementList, "/measurements/<string:location>")
 api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
+api.add_resource(UserConfirm, "/confirm/<int:user_id>")
 
 
 if __name__ == "__main__":
