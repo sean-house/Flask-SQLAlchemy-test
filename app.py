@@ -1,8 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv(verbose=True)  # Must do this before anything else. Mailgun class uses env variables
+
+import logging
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from marshmallow import ValidationError
-from dotenv import load_dotenv
+
 import os
 import sys
 
@@ -11,7 +15,7 @@ from resources.measurement import Measurement, MeasurementList
 from db import db
 from ma import ma
 
-load_dotenv(verbose=True)
+
 
 app = Flask(__name__)
 app.config["PROPAGATE_EXCEPTIONS"] = True
@@ -47,16 +51,29 @@ api.add_resource(UserConfirm, "/confirm/<int:user_id>")
 
 
 if __name__ == "__main__":
+    intent = os.environ.get('FLASK_INTENT', None)
+    # Set up logging
+    if intent == 'prod':
+        loglevl = logging.INFO
+    else:
+        loglevl = logging.DEBUG
+    logging.basicConfig(filename='app.log',
+                        format='%(asctime)s %(message)s',
+                        filemode='w',
+                        level=loglevl)
+
     db.init_app(app)
     ma.init_app(app)
-    intent = os.environ.get('FLASK_INTENT', None)
     if intent == 'dev':
         print('Running with "dev" environment')
+        logging.info('Running with "dev" environment')
         app.run(port=5000, debug=True, use_reloader=False)  # important to mention debug=True
     elif intent == 'prod':
         print('Running with "prod" environment')
+        logging.info('Running with "prod" environment')
         app.run(host='0.0.0.0', port=5000, debug=False)
     else:
         print('ERROR:  No FLASK_INTENT environment variable')
+        logging.error('ERROR:  No FLASK_INTENT environment variable')
         sys.exit(-1)
 

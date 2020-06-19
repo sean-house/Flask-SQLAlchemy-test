@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import logging
 
 from models.measurement import MeasurementModel
 from schemas.measurement import MeasurementSchema
@@ -14,18 +15,9 @@ class Measurement(Resource):
     @jwt_required
     def post(self):
         measurement_json = request.get_json()
-        print(measurement_json)
+        logging.info(f"Measurement logged: {measurement_json}")
         measurement_json["user_id"] = get_jwt_identity()
         this_measurement = measurement_schema.load(measurement_json)
-
-        # this_measurement = MeasurementModel(
-        #     timestamp=data["timestamp"],
-        #     location=data["location"],
-        #     measurement=data["measurement"],
-        #     value=data["value"],
-        #     unit=data["unit"],
-        #     user_id=current_identity,
-        # )
         this_measurement.save_to_db()
 
         return (

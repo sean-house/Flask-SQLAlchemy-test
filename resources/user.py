@@ -1,4 +1,5 @@
 from typing import Tuple
+import logging
 import os
 import hashlib
 import hmac
@@ -54,7 +55,7 @@ def authenticate(username, password) -> "UserModel":
 class UserRegister(Resource):
     def post(self):
         user = user_schema.load(request.get_json())
-        print(f"Passed user: {user}")
+        logging.info(f"USER REGISTER:  Passed user= {user}")
 
         if UserModel.find_by_username(user["username"]):
             return {"message": msgs.USER_EXISTS}, 400
@@ -73,15 +74,17 @@ class UserRegister(Resource):
             this_user.save_to_db()
             resp = this_user.send_confirmation_email()
             if resp:
-                print(f"Confirmation email sent: {json.loads(resp.text)['id']}")
+                logging.info(f"USER: Confirmation email sent: {json.loads(resp.text)['id']}")
             return {"message": msgs.CREATED.format(this_user.username)}, 201
         except MailGunException as e:
+            logging.error(f"USER: Mailgun exception caught: {str(e)}")
             this_user.delete_from_db()
             return {"error": msgs.FAILED_TO_MAIL.format(this_user.email)}, 500
         except Exception as e:
+            logging.error(f"USER REGISTER: Other exception: {str(e)}")
             traceback.print_exc()
             this_user.delete_from_db()
-            return {"error": msgs.FAILED_TO_CREATE.format(e.message)}, 500
+            return {"error": msgs.FAILED_TO_CREATE.format(str(e))}, 500
 
     @jwt_required
     def delete(self):
@@ -93,7 +96,7 @@ class UserRegister(Resource):
 
         current_identity = get_jwt_identity()
         db_user = UserModel.find_by_id(current_identity)
-        print(
+        logging.info(
             f"Delete called by {db_user.id}: {db_user.username} with data: {user.username}"
         )
         if db_user.username == user.username:
@@ -111,8 +114,6 @@ class UserLogin(Resource):
             request.get_json(), partial=("email",)
         )  # Login user is a dict
         this_user = UserModel.find_by_username(login_user["username"])
-
-        # this is what the `authenticate()` function did in security.py
         # now check the user model returned from the login has the same password as the database user
         if this_user and is_correct_password(
             this_user.pw_salt, this_user.pw_hash, login_user["password"]
@@ -142,6 +143,7 @@ class TokenRefresh(Resource):
         current_identity = get_jwt_identity()
         access_token = create_access_token(identity=current_identity, fresh=False)
         refresh_token = create_refresh_token(current_identity)
+        logging.info(f"REFRESH: Token refreshed for UserID {current_identity}")
         return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
 
