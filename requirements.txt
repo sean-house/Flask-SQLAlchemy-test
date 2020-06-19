@@ -2,9 +2,11 @@
 # $ conda create --name <env> --file <this file>
 # platform: osx-64
 aniso8601=8.0.0=py_0
+brotlipy=0.7.0=py38h64e0658_1000
 ca-certificates=2020.4.5.2=hecda079_0
 certifi=2020.4.5.2=py38h32f6830_0
 cffi=1.14.0=py38h356ff06_0
+chardet=3.0.4=py38h32f6830_1006
 click=7.1.2=pyh9f0ad1d_0
 cryptography=2.9.2=py38hb761dab_0
 flask=1.1.2=pyh9f0ad1d_0
@@ -29,20 +31,21 @@ pip=20.1.1=pyh9f0ad1d_0
 psycopg2=2.8.5=py38hb761dab_1
 pycparser=2.20=py_0
 pyjwt=1.4.2=pypi_0
+pyopenssl=19.1.0=py_1
+pysocks=1.7.1=py38h32f6830_1
 python=3.8.2=hd5f0129_7_cpython
 python-dateutil=2.8.1=py_0
 python_abi=3.8=1_cp38
 pytz=2020.1=pyh9f0ad1d_0
 readline=8.0=hcfe32e1_0
+requests=2.24.0=pyh9f0ad1d_0
 setuptools=46.4.0=py38h32f6830_0
 six=1.15.0=pyh9f0ad1d_0
 sqlalchemy=1.3.17=py38h64e0658_0
 sqlite=3.30.1=h93121df_0
 tk=8.6.10=hbbe82c9_0
+urllib3=1.25.9=py_0
 werkzeug=1.0.1=pyh9f0ad1d_0
 wheel=0.34.2=py_1
 xz=5.2.5=h0b31af3_0
 zlib=1.2.11=h0b31af3_1006
-
-flask~=1.1.2
-marshmallow~=3.6.1
