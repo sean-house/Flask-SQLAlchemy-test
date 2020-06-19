@@ -2,22 +2,29 @@
 File with message constants in English
 :var
 """
-MEASUREMENT_STORED = 'Measurement stored'
+MEASUREMENT_STORED = "Measurement stored"
 FIELD_REQUIRED = "'{}' field must be specified"
-USER_EXISTS = 'User with that name already exists'
-EMAIL_EXISTS = 'A user with that email already exists'
+USER_EXISTS = "User with that name already exists"
+EMAIL_EXISTS = "A user with that email already exists"
 USER_NONEXISTANT = "User with ID {} does not exist"
 USER_ACTIVATED = "User {} has ben activated"
 CREATED = "'{}' has been created"
 DELETED = "'{}' has been deleted"
-INVALID_PASSWORD = 'Invalid credentials'
-OWN_RECORD_ONLY = 'You are only permitted to delete your own record'
+INVALID_PASSWORD = "Invalid credentials"
+OWN_RECORD_ONLY = "You are only permitted to delete your own record"
 NOT_CONFIRMED = "You have not confirmed your ID. Check your email - <{}>"
+FAILED_TO_MAIL = (
+    "Failed to send confirmation e-mail to {}. Check the details and try again"
+)
+FAILED_TO_CREATE = "Failed to create an account.  Server returned error message: {}"
+MAILGUN_NO_API_KEY = "Cannot load Mailgun API key from environment - cannot send emails"
+MAILGUN_NO_DOMAIN = "Cannot load mail domain from environment - cannot send emails"
+MAILGUN_FAILED_TO_SEND = "Failure in Mailgun service. Error = {}.  Cannot send mail."
 
 # Confirmation email
-FROM_TITLE = 'API Admin'
-FROM_EMAIL = 'apis@housesofyateley.net'
-MAIL_SUBJECT = 'Measurement API - Confirm your email'
+FROM_TITLE = "API Admin"
+FROM_EMAIL = "apis@housesofyateley.net"
+MAIL_SUBJECT = "Measurement API - Confirm your email"
 MAIL_BODY = """
 Dear {name}, \n
 \n

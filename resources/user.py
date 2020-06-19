@@ -3,6 +3,7 @@ import os
 import hashlib
 import hmac
 import json
+import traceback
 from flask_restful import Resource
 from flask import request, make_response, render_template
 from flask_jwt_extended import (
@@ -14,6 +15,7 @@ from flask_jwt_extended import (
 )
 from models.user import UserModel
 from schemas.user import UserSchema
+from libs.mailgun import MailGunException
 import messages.en as msgs
 
 
@@ -59,17 +61,27 @@ class UserRegister(Resource):
         if UserModel.find_by_email(user["email"]):
             return {"message": msgs.EMAIL_EXISTS}, 400
 
-
         pw_salt, pw_hash = hash_new_password(password=user["password"])
         this_user = UserModel(
-            id=None, username=user["username"], email=user['email'], pw_salt=pw_salt, pw_hash=pw_hash
+            id=None,
+            username=user["username"],
+            email=user["email"],
+            pw_salt=pw_salt,
+            pw_hash=pw_hash,
         )
-        this_user.save_to_db()
-        resp = this_user.send_confirmation_email()
-        if resp:
-            print(f"Confirmation email sent: {json.loads(resp.text)['id']}")
-
-        return {"message": msgs.CREATED.format(this_user.username)}, 201
+        try:
+            this_user.save_to_db()
+            resp = this_user.send_confirmation_email()
+            if resp:
+                print(f"Confirmation email sent: {json.loads(resp.text)['id']}")
+            return {"message": msgs.CREATED.format(this_user.username)}, 201
+        except MailGunException as e:
+            this_user.delete_from_db()
+            return {"error": msgs.FAILED_TO_MAIL.format(this_user.email)}, 500
+        except Exception as e:
+            traceback.print_exc()
+            this_user.delete_from_db()
+            return {"error": msgs.FAILED_TO_CREATE.format(e.message)}, 500
 
     @jwt_required
     def delete(self):
@@ -77,7 +89,7 @@ class UserRegister(Resource):
         Remove user from database - but only for the same user as owns the token
         :param
         """
-        user = user_schema.load(request.get_json())
+        user = user_schema.load(request.get_json(), partial=("email",))
 
         current_identity = get_jwt_identity()
         db_user = UserModel.find_by_id(current_identity)
@@ -95,7 +107,9 @@ class UserRegister(Resource):
 
 class UserLogin(Resource):
     def post(self):
-        login_user = user_schema.load(request.get_json(), partial=('email',))  # Login user is a dict
+        login_user = user_schema.load(
+            request.get_json(), partial=("email",)
+        )  # Login user is a dict
         this_user = UserModel.find_by_username(login_user["username"])
 
         # this is what the `authenticate()` function did in security.py
@@ -106,7 +120,10 @@ class UserLogin(Resource):
             if this_user.activated:
                 access_token = create_access_token(identity=this_user.id, fresh=True)
                 refresh_token = create_refresh_token(this_user.id)
-                return {"access_token": access_token, "refresh_token": refresh_token}, 200
+                return (
+                    {"access_token": access_token, "refresh_token": refresh_token},
+                    200,
+                )
             else:
                 return {"message": msgs.NOT_CONFIRMED.format(this_user.username)}, 400
 
@@ -127,6 +144,7 @@ class TokenRefresh(Resource):
         refresh_token = create_refresh_token(current_identity)
         return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
+
 class UserConfirm(Resource):
     @classmethod
     def get(cls, user_id: int):
@@ -138,6 +156,10 @@ class UserConfirm(Resource):
             user.activated = True
             user.save_to_db()
             headers = {"Content-Type": "text/html"}
-            return make_response(render_template("confirmation_page.html", email=user.email), 202, headers)
+            return make_response(
+                render_template("confirmation_page.html", email=user.email),
+                202,
+                headers,
+            )
         else:
             return {"messages": msgs.USER_NONEXISTANT.format(user_id)}, 404
