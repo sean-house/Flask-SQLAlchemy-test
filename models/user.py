@@ -1,15 +1,12 @@
-import os
+from requests import Response
 from flask import request, url_for
-from requests import Response, post
 from db import db
 from typing import List, Union
 
+from libs.mailgun import Mailgun
 import messages.en as msgs
 
 
-MAIL_DOMAIN = 'mg.housesofyateley.net'
-MAILGUN_API_BASEURL = 'https://api.eu.mailgun.net/v3/{}'.format(MAIL_DOMAIN)
-MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY', None)
 
 class UserModel(db.Model):
     __tablename__ = "users"
@@ -41,20 +38,13 @@ class UserModel(db.Model):
         Send an address confirmation email to the user
         """
         link = request.url_root[:-1] + url_for('userconfirm', user_id=self.id)
-        if MAILGUN_API_KEY:
-            return post(
-                    MAILGUN_API_BASEURL + "/messages",
-                    auth=("api", MAILGUN_API_KEY),
-                    data={
-                        "from": f"{msgs.FROM_TITLE} <{msgs.FROM_EMAIL}>",
-                        "to": self.email,
-                        "subject": msgs.MAIL_SUBJECT,
-                        "text": msgs.MAIL_BODY.format(self.username, link)
-                    })
-        else:
-            print(f"No Mailgun API key in environment - cannot send confirmation email to {self.email}")
-            return None
-
+        return Mailgun.send_email(from_email=msgs.FROM_EMAIL,
+                                  from_title=msgs.FROM_TITLE,
+                                  to_email=[self.email],
+                                  subject=msgs.MAIL_SUBJECT,
+                                  text=msgs.MAIL_BODY.format(name=self.username, link=link),
+                                  html=msgs.MAIL_BODY_HTML.format(name=self.username, link=link)
+                                  )
 
     @classmethod
     def find_all(cls) -> List['UserModel']:

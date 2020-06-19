@@ -19,13 +19,24 @@ FROM_TITLE = 'API Admin'
 FROM_EMAIL = 'apis@housesofyateley.net'
 MAIL_SUBJECT = 'Measurement API - Confirm your email'
 MAIL_BODY = """
-Dear {}, \n
+Dear {name}, \n
 \n
 Thank you for registering to use the Measurements API. \n
-Please click this link to activate your account: {}  \n
+Please click this link to activate your account: {link}  \n
 \n
 \n
 If you did not register for the Measurement API you can safely ignore this message. \n
 \n
 API Administrator
+"""
+MAIL_BODY_HTML = """
+<html>
+<strong>Dear {name},</strong><br><br>
+Thank you for registering to use the Measurements API.<br>
+<br>
+Please click this link to activate your account:<br>
+<a href="{link}">{link}</a><br><br>
+API Administrator
+
+</html>
 """
