@@ -5,6 +5,7 @@ File with message constants in English
 MEASUREMENT_STORED = 'Measurement stored'
 FIELD_REQUIRED = "'{}' field must be specified"
 USER_EXISTS = 'User with that name already exists'
+EMAIL_EXISTS = 'A user with that email already exists'
 USER_NONEXISTANT = "User with ID {} does not exist"
 USER_ACTIVATED = "User {} has ben activated"
 CREATED = "'{}' has been created"

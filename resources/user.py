@@ -46,7 +46,6 @@ def authenticate(username, password) -> "UserModel":
     if this_user and is_correct_password(
         this_user.pw_salt, this_user.pw_hash, password
     ):
-        # if user and safe_str_cmp(user.password, password):
         return this_user
 
 
@@ -57,6 +56,10 @@ class UserRegister(Resource):
 
         if UserModel.find_by_username(user["username"]):
             return {"message": msgs.USER_EXISTS}, 400
+        if UserModel.find_by_email(user["email"]):
+            return {"message": msgs.EMAIL_EXISTS}, 400
+
+
         pw_salt, pw_hash = hash_new_password(password=user["password"])
         this_user = UserModel(
             id=None, username=user["username"], email=user['email'], pw_salt=pw_salt, pw_hash=pw_hash
@@ -92,7 +95,7 @@ class UserRegister(Resource):
 
 class UserLogin(Resource):
     def post(self):
-        login_user = user_schema.load(request.get_json())  # Login user is a dict
+        login_user = user_schema.load(request.get_json(), partial=('email',))  # Login user is a dict
         this_user = UserModel.find_by_username(login_user["username"])
 
         # this is what the `authenticate()` function did in security.py
