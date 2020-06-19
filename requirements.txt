@@ -30,7 +30,7 @@ openssl=1.1.1g=h0b31af3_0
 pip=20.1.1=pyh9f0ad1d_0
 psycopg2=2.8.5=py38hb761dab_1
 pycparser=2.20=py_0
-pyjwt=1.4.2=pypi_0
+#pyjwt=1.4.2=pypi_0
 pyopenssl=19.1.0=py_1
 pysocks=1.7.1=py38h32f6830_1
 python=3.8.2=hd5f0129_7_cpython
