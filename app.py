@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from marshmallow import ValidationError
+from dotenv import load_dotenv
 import os
 import sys
 
@@ -10,6 +11,7 @@ from resources.measurement import Measurement, MeasurementList
 from db import db
 from ma import ma
 
+load_dotenv(verbose=True)
 
 app = Flask(__name__)
 app.config["PROPAGATE_EXCEPTIONS"] = True
