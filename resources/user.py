@@ -53,7 +53,8 @@ def authenticate(username, password) -> "UserModel":
 
 
 class UserRegister(Resource):
-    def post(self):
+    @classmethod
+    def post(cls):
         user = user_schema.load(request.get_json())
         logging.info(f"USER REGISTER:  Passed user= {user}")
 
@@ -86,8 +87,9 @@ class UserRegister(Resource):
             this_user.delete_from_db()
             return {"error": msgs.FAILED_TO_CREATE.format(str(e))}, 500
 
+    @classmethod
     @jwt_required
-    def delete(self):
+    def delete(cls):
         """
         Remove user from database - but only for the same user as owns the token
         :param
@@ -109,7 +111,8 @@ class UserRegister(Resource):
 
 
 class UserLogin(Resource):
-    def post(self):
+    @classmethod
+    def post(cls):
         login_user = user_schema.load(
             request.get_json(), partial=("email",)
         )  # Login user is a dict
@@ -132,14 +135,16 @@ class UserLogin(Resource):
 
 
 class UserList(Resource):
+    @classmethod
     @jwt_required
-    def get(self):
+    def get(cls):
         return {"users": [user_schema.dump(user) for user in UserModel.find_all()]}
 
 
 class TokenRefresh(Resource):
+    @classmethod
     @jwt_refresh_token_required
-    def post(self):
+    def post(cls):
         current_identity = get_jwt_identity()
         access_token = create_access_token(identity=current_identity, fresh=False)
         refresh_token = create_refresh_token(current_identity)

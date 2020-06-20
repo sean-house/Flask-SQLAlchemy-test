@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv(verbose=True)  # Must do this before anything else. Mailgun class uses env variables
 
 import logging
@@ -15,12 +16,10 @@ from resources.measurement import Measurement, MeasurementList
 from db import db
 from ma import ma
 
-
-
 app = Flask(__name__)
 app.config["PROPAGATE_EXCEPTIONS"] = True
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "FLASK_DB_URL", "sqlite:///dbase.db"
+        "FLASK_DB_URL", "sqlite:///dbase.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 secret_key = os.environ.get('FLASK_SECRET', "qwertyuiop")
@@ -49,18 +48,17 @@ api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(UserConfirm, "/confirm/<int:user_id>")
 
-
 if __name__ == "__main__":
     intent = os.environ.get('FLASK_INTENT', None)
     # Set up logging
     if intent == 'prod':
-        loglevl = logging.INFO
+        loglevel = logging.INFO
     else:
-        loglevl = logging.DEBUG
+        loglevel = logging.DEBUG
     logging.basicConfig(filename='app.log',
                         format='%(asctime)s %(message)s',
                         filemode='w',
-                        level=loglevl)
+                        level=loglevel)
 
     db.init_app(app)
     ma.init_app(app)
@@ -76,4 +74,3 @@ if __name__ == "__main__":
         print('ERROR:  No FLASK_INTENT environment variable')
         logging.error('ERROR:  No FLASK_INTENT environment variable')
         sys.exit(-1)
-

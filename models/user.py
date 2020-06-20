@@ -7,7 +7,6 @@ from libs.mailgun import Mailgun
 import messages.en as msgs
 
 
-
 class UserModel(db.Model):
     __tablename__ = "users"
 
@@ -17,7 +16,6 @@ class UserModel(db.Model):
     pw_salt = db.Column(db.LargeBinary(80))
     pw_hash = db.Column(db.LargeBinary(100))
     activated = db.Column(db.Boolean(), default=False)
-
 
     def save_to_db(self) -> None:
         """

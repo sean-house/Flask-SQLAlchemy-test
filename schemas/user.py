@@ -1,6 +1,3 @@
-from ma import ma
-
-# from models.user import UserModel
 from marshmallow import Schema, fields
 
 

@@ -1,6 +1,5 @@
 from ma import ma
 from models.measurement import MeasurementModel
-from models.user import UserModel
 from schemas.user import UserSchema
 
 
