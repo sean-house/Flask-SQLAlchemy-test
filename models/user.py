@@ -4,6 +4,7 @@ from db import db
 from typing import List, Union
 
 from libs.mailgun import Mailgun
+from models.confirmation import ConfirmationModel
 import messages.en as msgs
 
 
@@ -15,7 +16,14 @@ class UserModel(db.Model):
     email = db.Column(db.String(80), nullable=False, unique=True)
     pw_salt = db.Column(db.LargeBinary(80))
     pw_hash = db.Column(db.LargeBinary(100))
-    activated = db.Column(db.Boolean(), default=False)
+    confirmation = db.relationship(
+            "ConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
+    )
+
+    @property
+    def most_recent_confirmation(self) -> "ConfirmationModel":
+        # ordered by expiration time (in descending order)
+        return self.confirmation.order_by(db.desc(ConfirmationModel.expire_at)).first()
 
     def save_to_db(self) -> None:
         """
@@ -35,7 +43,9 @@ class UserModel(db.Model):
         """
         Send an address confirmation email to the user
         """
-        link = request.url_root[:-1] + url_for('userconfirm', user_id=self.id)
+        link = request.url_root[:-1] + url_for(
+            "confirmation", confirmation_id=self.most_recent_confirmation.id
+        )
         return Mailgun.send_email(from_email=msgs.FROM_EMAIL,
                                   from_title=msgs.FROM_TITLE,
                                   to_email=[self.email],

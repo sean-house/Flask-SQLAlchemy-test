@@ -5,8 +5,9 @@ import hashlib
 import hmac
 import json
 import traceback
+
 from flask_restful import Resource
-from flask import request, make_response, render_template
+from flask import request
 from flask_jwt_extended import (
     jwt_required,
     jwt_refresh_token_required,
@@ -14,6 +15,8 @@ from flask_jwt_extended import (
     create_refresh_token,
     get_jwt_identity,
 )
+
+from models.confirmation import ConfirmationModel
 from models.user import UserModel
 from schemas.user import UserSchema
 from libs.mailgun import MailGunException
@@ -73,6 +76,8 @@ class UserRegister(Resource):
         )
         try:
             this_user.save_to_db()
+            confirmation = ConfirmationModel(this_user.id)
+            confirmation.save_to_db()
             resp = this_user.send_confirmation_email()
             if resp:
                 logging.info(f"USER: Confirmation email sent: {json.loads(resp.text)['id']}")
@@ -121,7 +126,8 @@ class UserLogin(Resource):
         if this_user and is_correct_password(
             this_user.pw_salt, this_user.pw_hash, login_user["password"]
         ):
-            if this_user.activated:
+            confirmation = this_user.most_recent_confirmation
+            if confirmation and confirmation.confirmed:
                 access_token = create_access_token(identity=this_user.id, fresh=True)
                 refresh_token = create_refresh_token(this_user.id)
                 return (
@@ -152,21 +158,3 @@ class TokenRefresh(Resource):
         return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
 
-class UserConfirm(Resource):
-    @classmethod
-    def get(cls, user_id: int):
-        """
-        :var
-        """
-        user = UserModel.find_by_id(user_id)
-        if user:
-            user.activated = True
-            user.save_to_db()
-            headers = {"Content-Type": "text/html"}
-            return make_response(
-                render_template("confirmation_page.html", email=user.email),
-                202,
-                headers,
-            )
-        else:
-            return {"messages": msgs.USER_NONEXISTANT.format(user_id)}, 404

@@ -11,8 +11,9 @@ from marshmallow import ValidationError
 import os
 import sys
 
-from resources.user import UserRegister, UserList, UserLogin, TokenRefresh, UserConfirm
+from resources.user import UserRegister, UserList, UserLogin, TokenRefresh
 from resources.measurement import Measurement, MeasurementList
+from resources.confirmation import Confirmation, ConfirmationByUser
 from db import db
 from ma import ma
 
@@ -46,7 +47,8 @@ api.add_resource(Measurement, "/measurement")
 api.add_resource(MeasurementList, "/measurements/<string:location>")
 api.add_resource(UserLogin, "/login")
 api.add_resource(TokenRefresh, "/refresh")
-api.add_resource(UserConfirm, "/confirm/<int:user_id>")
+api.add_resource(Confirmation, "/confirm/<string:confirmation_id>")
+api.add_resource(ConfirmationByUser, "/check/<int:user_id>")
 
 if __name__ == "__main__":
     intent = os.environ.get('FLASK_INTENT', None)

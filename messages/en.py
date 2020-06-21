@@ -31,6 +31,7 @@ Dear {name}, \n
 Thank you for registering to use the Measurements API. \n
 Please click this link to activate your account: {link}  \n
 \n
+Please note: The link expires in 30 minutes
 \n
 If you did not register for the Measurement API you can safely ignore this message. \n
 \n
@@ -43,7 +44,12 @@ Thank you for registering to use the Measurements API.<br>
 <br>
 Please click this link to activate your account:<br>
 <a href="{link}">{link}</a><br><br>
+Please note: The link expires in 30 minutes<br><br>
 API Administrator
-
 </html>
 """
+NOT_FOUND = 'This ID is not found. Have you already registered?'
+EXPIRED = 'This registration has expired.  Please re-register'
+ALREADY_CONFIRMED = 'You have already confirmed this email. No need to do so again'
+RESEND_SUCCESSFUL = 'Resent confirmation mail.  Check your mailbox'
+RESEND_FAILED = 'Failed to resend confirmation mail.  Problem with the Mailgun service'
