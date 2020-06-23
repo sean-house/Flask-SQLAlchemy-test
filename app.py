@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-
 load_dotenv(verbose=True)  # Must do this before anything else. Mailgun class uses env variables
 
 import logging
@@ -18,14 +17,10 @@ from db import db
 from ma import ma
 
 app = Flask(__name__)
-app.config["PROPAGATE_EXCEPTIONS"] = True
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-        "FLASK_DB_URL", "sqlite:///dbase.db"
-)
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-secret_key = os.environ.get('FLASK_SECRET', "qwertyuiop")
-app.config["JWT_SECRET_KEY"] = secret_key
-app.secret_key = secret_key
+print(f"Using settings from {os.environ['APPLICATION_SETTINGS']}")
+app.config.from_object('default_config')
+app.config.from_envvar("APPLICATION_SETTINGS")
+
 api = Api(app)
 
 jwt = JWTManager(app)

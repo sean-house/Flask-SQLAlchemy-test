@@ -28,10 +28,10 @@ class Confirmation(Resource):
 
         if not confirmation:
             error_msg = msgs.NOT_FOUND, 404
-        if confirmation.expired:
-            error_msg = msgs.EXPIRED, 400
-        if confirmation.confirmed:
+        elif confirmation.confirmed:
             error_msg = msgs.ALREADY_CONFIRMED, 400
+        elif confirmation.expired:
+            error_msg = msgs.EXPIRED, 400
 
         if error_msg[ 0 ]:
             return make_response(
@@ -86,7 +86,7 @@ class ConfirmationByUser(Resource):
         """
         user = UserModel.find_by_id(user_id)
         if not user:
-            return {"message": msgs.USER_NONEXISTANT}, 404
+            return {"message": msgs.USER_NONEXISTANT.format(user_id)}, 404
         logging.debug(f"Processing confirmation resend for {user.username}")
         try:
             # find the most current confirmation for the user
