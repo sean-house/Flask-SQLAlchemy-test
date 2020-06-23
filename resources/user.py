@@ -104,10 +104,10 @@ class UserRegister(Resource):
         current_identity = get_jwt_identity()
         db_user = UserModel.find_by_id(current_identity)
         logging.info(
-            f"Delete called by {db_user.id}: {db_user.username} with data: {user.username}"
+            f"Delete called by {db_user.id}: {db_user.username} with data: {user['username']}"
         )
-        if db_user.username == user.username:
-            if is_correct_password(db_user.pw_salt, db_user.pw_hash, user.password):
+        if db_user.username == user['username']:
+            if is_correct_password(db_user.pw_salt, db_user.pw_hash, user['password']):
                 db_user.delete_from_db()
                 return {"message": msgs.DELETED.format(db_user.username)}, 200
             else:
