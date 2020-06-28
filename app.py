@@ -5,6 +5,7 @@ import logging
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 from marshmallow import ValidationError
 
 import os
@@ -24,6 +25,7 @@ app.config.from_envvar("APPLICATION_SETTINGS")
 api = Api(app)
 
 jwt = JWTManager(app)
+migrate = Migrate(app=app, db=db)
 
 
 @app.before_first_request
