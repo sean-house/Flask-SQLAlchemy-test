@@ -6,18 +6,20 @@ from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_cors import CORS
 from marshmallow import ValidationError
 
 import os
 import sys
 
+from db import db
+from ma import ma
 from resources.user import UserRegister, UserList, UserLogin, TokenRefresh
 from resources.measurement import Measurement, MeasurementList
 from resources.confirmation import Confirmation, ConfirmationByUser
-from db import db
-from ma import ma
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 print(f"Using settings from {os.environ['APPLICATION_SETTINGS']}")
 app.config.from_object('default_config')
 app.config.from_envvar("APPLICATION_SETTINGS")
