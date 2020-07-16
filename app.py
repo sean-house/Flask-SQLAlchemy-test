@@ -19,7 +19,7 @@ from resources.measurement import Measurement, MeasurementList
 from resources.confirmation import Confirmation, ConfirmationByUser
 
 app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+cors = CORS(app)
 print(f"Using settings from {os.environ['APPLICATION_SETTINGS']}")
 app.config.from_object('default_config')
 app.config.from_envvar("APPLICATION_SETTINGS")
